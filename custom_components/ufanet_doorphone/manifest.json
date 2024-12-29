@@ -1,0 +1,10 @@
+{
+    "domain": "ufanet_doorphone",
+    "name": "Ufanet Doorphone",
+    "version": "1.0.0",
+    "documentation": "https://github.com/your-repo/ufanet_doorphone",
+    "requirements": [],
+    "dependencies": [],
+    "config_flow": true,
+    "codeowners": ["@your-username"]
+}
