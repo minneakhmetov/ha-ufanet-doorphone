@@ -50,7 +50,9 @@ class UfanetAPI:
             await self.authenticate()
         async with self.session.get(GET_DOORPHONES_ENDPOINT, cookies=self.cookie) as response:
             if response.status == 200:
-                return await response.json()
+                data = await response.json()
+                _LOGGER.debug("Fetched doorphones: %s", data)
+                return data
             elif response.status == 401:
                 _LOGGER.warning("Cookie expired, re-authenticating.")
                 await self.authenticate()
@@ -147,5 +149,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
 
     doorphones = coordinator.data
+    if not doorphones:
+        _LOGGER.warning("No doorphones found from API.")
+        return
+
+    _LOGGER.debug("Creating lock entities for doorphones: %s", doorphones)
     locks = [UfanetLock(api, doorphone) for doorphone in doorphones]
     async_add_entities(locks)
