@@ -1,20 +1,34 @@
-"""Ufanet Doorphone integration."""
+"""The ufanet_domofon integration."""
+
+from __future__ import annotations
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+# TODO List the platforms that you want to support.
+# For your initial PR, limit it to 1 platform.
+PLATFORMS: list[Platform] = [Platform.LOCK]
 
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the Ufanet Doorphone component."""
-    hass.data.setdefault(DOMAIN, {})
+# TODO Create ConfigEntry type alias with API object
+# TODO Rename type alias and update all entry annotations
+
+
+# TODO Update entry annotation
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up ufanet_domofon from a config entry."""
+
+    # TODO 1. Create API instance
+    # TODO 2. Validate the API connection (and authentication)
+    # TODO 3. Store an API object for your platforms to access
+    # entry.runtime_data = MyAPI(...)
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     return True
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up Ufanet Doorphone from a config entry."""
-    hass.data[DOMAIN][entry.entry_id] = {}
-    return True
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+# TODO Update entry annotation
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    hass.data[DOMAIN].pop(entry.entry_id, None)
-    return True
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

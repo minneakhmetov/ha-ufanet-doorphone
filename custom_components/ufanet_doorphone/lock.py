@@ -1,4 +1,3 @@
-
 import logging
 import aiohttp
 from datetime import timedelta
@@ -80,11 +79,13 @@ class UfanetAPI:
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration using YAML (if applicable)."""
+    _LOGGER.debug("async_setup called for YAML configuration.")
     hass.data.setdefault(DOMAIN, {})
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the integration from a config entry."""
+    _LOGGER.debug("async_setup_entry called with config entry: %s", entry.data)
     username = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
 
@@ -104,11 +105,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await coordinator.async_config_entry_first_refresh()
 
+    _LOGGER.debug("Setting up platforms for domain: %s", DOMAIN)
     hass.config_entries.async_setup_platforms(entry, ["lock"])
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the integration."""
+    _LOGGER.debug("async_unload_entry called for entry: %s", entry.entry_id)
     hass.data[DOMAIN].pop(entry.entry_id)
     return await hass.config_entries.async_unload_platforms(entry, ["lock"])
 
@@ -136,6 +139,7 @@ class UfanetLock(LockEntity):
 
     async def async_unlock(self, **kwargs):
         """Handle the unlock action to open the doorphone."""
+        _LOGGER.debug("Unlocking doorphone: %s", self._id)
         success = await self._api.open_doorphone(self._id)
         if success:
             _LOGGER.info("Doorphone %s opened successfully.", self._name)
@@ -144,6 +148,11 @@ class UfanetLock(LockEntity):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the lock platform."""
+    _LOGGER.debug("async_setup_platform called with discovery_info: %s", discovery_info)
+    if discovery_info is None:
+        _LOGGER.error("No discovery_info passed to async_setup_platform.")
+        return
+
     entry_id = discovery_info["entry_id"]
     api = hass.data[DOMAIN][entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
