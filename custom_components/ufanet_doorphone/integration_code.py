@@ -25,12 +25,15 @@ class UfanetAPI:
 
     def authenticate(self):
         """Authenticates with the API and retrieves the cookie."""
-        data = {
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        params = {
             "next": "/office/skud/",
             "contract": self.username,
             "password": self.password
         }
-        response = self.session.post(LOGIN_ENDPOINT, data=data)
+        response = self.session.post(LOGIN_ENDPOINT, headers=headers, params=params)
         if response.status_code == 200:
             self.cookie = self.session.cookies.get_dict()
             _LOGGER.debug("Authentication successful, cookies saved.")
