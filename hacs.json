@@ -1,5 +1,5 @@
 {
-  "name": "ufanet_domofon",
+  "name": "ufanet_domophone",
   "render_readme": true,
   "homeassistant": "2023.0.0",
   "country": "ru"
