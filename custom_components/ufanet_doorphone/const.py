@@ -1,2 +1,2 @@
-"""Constants for the ufanet_doorphone integration."""
+"""Constants for the Ufanet Doorphone integration."""
 DOMAIN = "ufanet_doorphone"
