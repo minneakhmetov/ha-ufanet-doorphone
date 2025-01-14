@@ -43,7 +43,7 @@ class UfanetAPI:
             self.session = session
             async with session.post(LOGIN_ENDPOINT, data=data) as response:
                 if response.status == 200:
-                    self.cookie = session.cookie_jar.filter_cookies(API_BASE_URL)
+                    self.cookie = session.cookie_jar
                     _LOGGER.debug("Authentication successful, cookies saved.")
                 else:
                     _LOGGER.error("Authentication failed. Status code: %s", response.status)
