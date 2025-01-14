@@ -8,6 +8,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
 from homeassistant.components.lock import LockEntity
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 DOMAIN = "ufanet_doorphone"
 _LOGGER = logging.getLogger(__name__)
@@ -94,11 +95,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
     return True
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     """Set up Ufanet Doorphone locks from a config entry."""
-    _LOGGER.debug("async_setup_entry for lock platform called with entry: %s", config_entry)
+    _LOGGER.debug("async_setup_entry for lock platform called with entry: %s", entry)
 
-    entry_id = config_entry.entry_id
+    entry_id = entry.entry_id
     api = hass.data[DOMAIN][entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
 
@@ -150,22 +151,22 @@ class UfanetLock(LockEntity):
         else:
             _LOGGER.error("Failed to open doorphone %s.", self._name)
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the lock platform."""
-    _LOGGER.debug("async_setup_platform called with discovery_info: %s", discovery_info)
-    if discovery_info is None:
-        _LOGGER.error("No discovery_info passed to async_setup_platform.")
-        return
-
-    entry_id = discovery_info["entry_id"]
-    api = hass.data[DOMAIN][entry_id]["api"]
-    coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
-
-    doorphones = coordinator.data
-    if not doorphones:
-        _LOGGER.warning("No doorphones found from API.")
-        return
-
-    _LOGGER.debug("Creating lock entities for doorphones: %s", doorphones)
-    locks = [UfanetLock(api, doorphone) for doorphone in doorphones]
-    async_add_entities(locks)
+# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+#     """Set up the lock platform."""
+#     _LOGGER.debug("async_setup_platform called with discovery_info: %s", discovery_info)
+#     if discovery_info is None:
+#         _LOGGER.error("No discovery_info passed to async_setup_platform.")
+#         return
+#
+#     entry_id = discovery_info["entry_id"]
+#     api = hass.data[DOMAIN][entry_id]["api"]
+#     coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
+#
+#     doorphones = coordinator.data
+#     if not doorphones:
+#         _LOGGER.warning("No doorphones found from API.")
+#         return
+#
+#     _LOGGER.debug("Creating lock entities for doorphones: %s", doorphones)
+#     locks = [UfanetLock(api, doorphone) for doorphone in doorphones]
+#     async_add_entities(locks)
