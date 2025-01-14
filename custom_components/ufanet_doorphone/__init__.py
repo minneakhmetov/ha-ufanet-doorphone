@@ -1,5 +1,5 @@
 import logging
-import aiohttp
+import requests
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
