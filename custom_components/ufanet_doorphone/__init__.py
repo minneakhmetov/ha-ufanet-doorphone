@@ -117,7 +117,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     _LOGGER.debug("Setting up platforms for domain: %s", DOMAIN)
-    hass.config_entries.async_setup_platforms(entry, ["lock"])
+    await hass.config_entries.async_forward_entry_setups(entry, ["lock"])  # Замена на новый метод
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
