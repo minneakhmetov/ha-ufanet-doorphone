@@ -1,5 +1,6 @@
 import logging
 import aiohttp
+from aiohttp import FormData
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -33,9 +34,14 @@ class UfanetAPI:
             "contract": self.username,
             "password": self.password
         }
+        data = FormData()
+        data.add_field('next', '/office/skud/')
+        data.add_field('contract', self.username)
+        data.add_field('password', self.password)
+
         async with aiohttp.ClientSession() as session:
             self.session = session
-            async with session.post(LOGIN_ENDPOINT, headers=headers, params=params) as response:
+            async with session.post(LOGIN_ENDPOINT, data=data) as response:
                 if response.status == 200:
                     self.cookie = session.cookie_jar.filter_cookies(API_BASE_URL)
                     _LOGGER.debug("Authentication successful, cookies saved.")
