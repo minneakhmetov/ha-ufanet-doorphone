@@ -53,9 +53,9 @@ class UfanetAPI:
         """Gets the list of doorphones."""
         if not self.cookie:
             await self.authenticate()
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(cookie_jar=self.cookie) as session:
             self.session = session
-            async with self.session.get(GET_DOORPHONES_ENDPOINT, cookies=self.cookie) as response:
+            async with self.session.get(GET_DOORPHONES_ENDPOINT) as response:
                 if response.status == 200:
                     data = await response.json()
                     _LOGGER.debug("Fetched doorphones: %s", data)
@@ -74,9 +74,9 @@ class UfanetAPI:
             await self.authenticate()
         url = OPEN_DOORPHONE_ENDPOINT.format(id=doorphone_id)
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(cookie_jar=self.cookie) as session:
             self.session = session
-            async with self.session.get(url, cookies=self.cookie) as response:
+            async with self.session.get(url) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result.get("result", False)
