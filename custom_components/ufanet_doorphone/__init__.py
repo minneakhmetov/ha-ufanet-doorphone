@@ -94,31 +94,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
     return True
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up the integration from a config entry."""
-    _LOGGER.debug("async_setup_entry called with config entry: %s", entry.data)
-    username = entry.data[CONF_USERNAME]
-    password = entry.data[CONF_PASSWORD]
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    """Set up Ufanet Doorphone locks from a config entry."""
+    _LOGGER.debug("async_setup_entry for lock platform called with entry: %s", config_entry)
 
-    api = UfanetAPI(username, password)
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=DOMAIN,
-        update_method=api.get_doorphones,
-        update_interval=timedelta(minutes=10),
-    )
+    entry_id = config_entry.entry_id
+    api = hass.data[DOMAIN][entry_id]["api"]
+    coordinator = hass.data[DOMAIN][entry_id]["coordinator"]
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "api": api,
-        "coordinator": coordinator
-    }
+    doorphones = coordinator.data
+    _LOGGER.debug("Fetched doorphones from coordinator: %s", doorphones)
 
-    await coordinator.async_config_entry_first_refresh()
+    if not doorphones:
+        _LOGGER.warning("No doorphones found from API.")
+        return
 
-    _LOGGER.debug("Setting up platforms for domain: %s", DOMAIN)
-    await hass.config_entries.async_forward_entry_setups(entry, ["lock"])  # Замена на новый метод
-    return True
+    locks = [UfanetLock(api, doorphone) for doorphone in doorphones]
+    _LOGGER.debug("Created lock entities: %s", [lock.name for lock in locks])
+    async_add_entities(locks)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the integration."""
