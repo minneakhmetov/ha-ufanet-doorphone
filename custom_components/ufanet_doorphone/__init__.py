@@ -26,61 +26,61 @@ class UfanetAPI:
     async def authenticate(self):
         """Authenticates with the API and retrieves the cookie."""
         headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
+           # "Content-Length": "4608",
         }
         params = {
             "next": "/office/skud/",
             "contract": self.username,
             "password": self.password
         }
-        async with aiohttp.ClientSession() as session:
-            self.session = session
-            async with session.post(LOGIN_ENDPOINT, headers=headers, params=params) as response:
-                if response.status == 200:
-                    self.cookie = session.cookie_jar.filter_cookies(API_BASE_URL)
-                    _LOGGER.debug("Authentication successful, cookies saved.")
-                else:
-                    _LOGGER.error("Authentication failed. Status code: %s", response.status)
-                    raise Exception("Authentication failed")
+        self.session = requests.Session()
+        response = self.session.post(LOGIN_ENDPOINT, data=params)
+        if response.status_code == 200:
+            self.cookie = self.session.cookies
+            _LOGGER.debug("Authentication successful, cookies saved.")
+        else:
+            _LOGGER.error("Authentication failed. Status code: %s", response.status)
+            raise Exception("Authentication failed")
 
     async def get_doorphones(self):
         """Gets the list of doorphones."""
-        if not self.cookie:
+        if not self.session or self.cookie:
             await self.authenticate()
-        async with aiohttp.ClientSession() as session:
-            self.session = session
-            async with self.session.get(GET_DOORPHONES_ENDPOINT, cookies=self.cookie) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    _LOGGER.debug("Fetched doorphones: %s", data)
-                    return data
-                elif response.status == 401:
-                    _LOGGER.warning("Cookie expired, re-authenticating.")
-                    await self.authenticate()
-                    return await self.get_doorphones()
-                else:
-                    _LOGGER.error("Failed to fetch doorphones. Status code: %s", response.status)
-                    raise Exception("Failed to fetch doorphones")
+
+        response = self.session.get(GET_DOORPHONES_ENDPOINT, cookies=self.cookie)
+
+        if response.status_code == 200:
+            data = response.json()
+            _LOGGER.debug("Fetched doorphones: %s", data)
+            return data
+        elif response.status_code == 401:
+            _LOGGER.warning("Cookie expired, re-authenticating.")
+            await self.authenticate()
+            return await self.get_doorphones()
+        else:
+            _LOGGER.error("Failed to fetch doorphones. Status code: %s", response.status)
+            raise Exception("Failed to fetch doorphones")
 
     async def open_doorphone(self, doorphone_id):
         """Opens a specific doorphone."""
-        if not self.cookie:
+        if not self.session or self.cookie:
             await self.authenticate()
+
         url = OPEN_DOORPHONE_ENDPOINT.format(id=doorphone_id)
 
-        async with aiohttp.ClientSession() as session:
-            self.session = session
-            async with self.session.get(url, cookies=self.cookie) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get("result", False)
-                elif response.status == 401:
-                    _LOGGER.warning("Cookie expired, re-authenticating.")
-                    await self.authenticate()
-                    return await self.open_doorphone(doorphone_id)
-                else:
-                    _LOGGER.error("Failed to open doorphone. Status code: %s", response.status)
-                    raise Exception("Failed to open doorphone")
+        response = self.session.get(url, cookies=self.cookie)
+
+        if response.status_code == 200:
+            result = response.json()
+            return result.get("result", False)
+        elif response.status_code == 401:
+            _LOGGER.warning("Cookie expired, re-authenticating.")
+            await self.authenticate()
+            return await self.open_doorphone(doorphone_id)
+        else:
+            _LOGGER.error("Failed to open doorphone. Status code: %s", response.status)
+            raise Exception("Failed to open doorphone")
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration using YAML (if applicable)."""
